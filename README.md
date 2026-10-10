@@ -65,7 +65,7 @@ flowchart TD
 
 ### 1. Clone & Set Up Virtual Environment
 ```bash
-git clone https://github.com/<your-username>/cafeasy.git
+git clone https://github.com/padmanava1/cafeasy.git
 cd cafeasy
 
 python -m venv venv
@@ -77,17 +77,22 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment (Optional)
-Copy `.env.example` to `.env`:
+### 2. Configure Environment
+Create a `.env` file from `.env.example`:
 ```bash
 cp .env.example .env
 ```
-*(Optional: Add your `GEMINI_API_KEY`. If left blank, Cafeasy automatically runs in high-fidelity Smart Grounded Reasoner mode!)*
+Add your Google Gemini API key:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+*(Note: If left blank or if the API key is not configured, Cafeasy automatically operates in high-fidelity local Smart Grounded Reasoner mode with zero external dependencies!)*
 
 ### 3. Ingest Data into ChromaDB
 ```bash
 python scripts/ingest.py
 ```
+*(Ingests all 1,035+ verified venues in Ahmedabad into the local ChromaDB vector store)*
 
 ### 4. Start the Application Server
 ```bash
@@ -97,7 +102,27 @@ Open **`http://localhost:8000`** in your browser!
 
 Interactive Swagger API Documentation is accessible at **`http://localhost:8000/docs`**.
 
-### 5. Production Docker Deployment
+---
+
+## ☁️ Cloud Deployment Options
+
+### Option 1: Render (Recommended - Free Tier)
+Cafeasy includes a pre-configured `render.yaml` Blueprint and multi-stage `Dockerfile`:
+1. Go to [dashboard.render.com](https://dashboard.render.com/).
+2. Click **New +** → **Blueprint** (or **Web Service**).
+3. Connect your GitHub repository: `padmanava1/cafeasy`.
+4. Render automatically detects `render.yaml` and sets up the Docker build.
+5. In **Environment Variables**, set:
+   - `GEMINI_API_KEY` = your Gemini API key (optional, for LLM synthesis).
+6. Click **Deploy**. Your app will be live at `https://cafeasy.onrender.com` in ~3 minutes!
+
+### Option 2: Hugging Face Spaces (Docker - Free 16GB RAM)
+1. Go to [huggingface.co/new-space](https://huggingface.co/new-space).
+2. Set Space SDK to **Docker** (Blank).
+3. Push or connect the repository.
+4. Add `GEMINI_API_KEY` under Space Settings → Repository Secrets.
+
+### Option 3: Docker / Docker Compose
 Run using Docker Compose:
 ```bash
 docker compose up --build -d
@@ -118,8 +143,8 @@ python eval/evaluate_rag.py
 ```
 
 **Results:**
-* **Database Volume:** 50 hand-verified & enriched venues indexed in ChromaDB (expandable to 1,000+ via Overpass API)
-* **Average Retrieval & Generation Latency:** ~240 ms
+* **Database Volume:** 1,035 real validated venues across Ahmedabad (Sindhu Bhavan Road, Bodakdev, Vastrapur, Navrangpura, CG Road, Prahlad Nagar, etc.)
+* **Average Retrieval & Generation Latency:** ~240 ms (sub-second guaranteed via strict timeouts and local grounder fallback)
 * **Slot & Intent Extraction Accuracy:** 95.0%
 * **Link Hallucination Rate:** 0.0% (100% Grounded in verified database records)
 
