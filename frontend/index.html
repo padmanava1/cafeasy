@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafeasy - AI Cafe & Dining Recommendation Engine</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- LEFT PANEL: CHAT & DISCOVERY -->
+    <section class="chat-section">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-icon">
+            <i class="fa-solid fa-mug-hot"></i>
+          </div>
+          <div class="brand-text">
+            <h1>Cafeasy <span class="badge">RAG AI</span></h1>
+            <p>Ahmedabad Culinary & Cafe Discovery Agent</p>
+          </div>
+        </div>
+        <div class="system-status" id="systemStatus">
+          <span class="status-dot"></span>
+          <span class="status-label">Connecting...</span>
+        </div>
+      </header>
+
+      <!-- Mobile Tab Bar Switcher (Only visible on screens <= 850px) -->
+      <nav class="mobile-tab-nav" id="mobileTabNav">
+        <button type="button" class="tab-btn active" id="tabBtnChat">
+          <i class="fa-solid fa-comments"></i>
+          <span>Recommendations</span>
+        </button>
+        <button type="button" class="tab-btn" id="tabBtnMap">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span>Interactive Map</span>
+          <span class="tab-pin-count" id="tabPinCount">0</span>
+        </button>
+      </nav>
+
+      <!-- Quick Filter Bar -->
+      <div class="filter-bar">
+        <button type="button" class="btn-locate" id="locateBtn" title="Detect Current GPS Location">
+          <i class="fa-solid fa-crosshairs"></i> <span id="locateBtnLabel">Locate Me</span>
+        </button>
+        <div class="filter-item">
+          <i class="fa-solid fa-location-dot"></i>
+          <select id="filterArea" title="Filter by Area">
+            <option value="">All Ahmedabad</option>
+            <option value="Sindhu Bhavan Road">Sindhu Bhavan (SBR)</option>
+            <option value="Bodakdev">Bodakdev</option>
+            <option value="Vastrapur">Vastrapur</option>
+            <option value="Navrangpura">Navrangpura</option>
+            <option value="Prahlad Nagar">Prahlad Nagar</option>
+            <option value="Ambawadi">Ambawadi</option>
+            <option value="CG Road">CG Road</option>
+            <option value="Lal Darwaja">Lal Darwaja (Heritage)</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <i class="fa-solid fa-leaf"></i>
+          <select id="filterDietary" title="Dietary Preference">
+            <option value="">All Diets</option>
+            <option value="Pure Veg">Pure Veg Only</option>
+            <option value="Veg & Non-Veg">Veg & Non-Veg</option>
+            <option value="Jain Friendly">Jain Friendly</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <i class="fa-solid fa-sparkles"></i>
+          <select id="filterVibe" title="Atmosphere / Vibe">
+            <option value="">All Vibes</option>
+            <option value="Date Night">Date Night / Romantic</option>
+            <option value="Work Friendly">Work Friendly / Wi-Fi</option>
+            <option value="Quiet">Quiet / Book Reading</option>
+            <option value="Late Night">Late Night / 24x7</option>
+            <option value="Rooftop">Rooftop & Open Air</option>
+            <option value="Board Games">Board Games & Social</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <i class="fa-solid fa-utensils"></i>
+          <select id="filterCuisine" title="Cuisine / Specialty">
+            <option value="">All Cuisines</option>
+            <option value="Coffee">Specialty Coffee</option>
+            <option value="Italian">Italian & Pizza</option>
+            <option value="Continental">Continental & European</option>
+            <option value="Gujarati">Gujarati & Local</option>
+            <option value="Desserts">Desserts & Bakery</option>
+            <option value="Chai">Chai & Street Food</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <i class="fa-solid fa-wallet"></i>
+          <select id="filterBudget" title="Maximum Budget for Two">
+            <option value="">Any Budget</option>
+            <option value="500">Under ₹500</option>
+            <option value="800">Under ₹800</option>
+            <option value="1200">Under ₹1200</option>
+            <option value="1800">Under ₹1800</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <i class="fa-solid fa-route"></i>
+          <select id="filterRadius" title="Proximity Radius">
+            <option value="">Any Distance</option>
+            <option value="3">Within 3 km</option>
+            <option value="5">Within 5 km</option>
+            <option value="10">Within 10 km</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <i class="fa-solid fa-arrow-down-short-wide"></i>
+          <select id="filterSortBy" title="Sort Criteria">
+            <option value="relevance">Top Recommended</option>
+            <option value="distance">Closest Distance</option>
+            <option value="rating">Highest Rated</option>
+            <option value="price_asc">Lowest Price</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Prompt Suggestions Chips -->
+      <div class="suggestion-chips">
+        <span class="chip" data-prompt="Find the best cafes closest to my current location">
+          📍 Cafes closest to me
+        </span>
+        <span class="chip" data-prompt="Cozy romantic date cafe on Sindhu Bhavan Road with outdoor seating">
+          🕯️ Date night on SBR
+        </span>
+        <span class="chip" data-prompt="Quiet cafe with Wi-Fi and specialty coffee to work on laptop in Bodakdev">
+          💻 Work with Wi-Fi
+        </span>
+        <span class="chip" data-prompt="Serene peaceful cafe in Vastrapur to read books with great filter coffee under 500">
+          📖 Reading in Vastrapur
+        </span>
+        <span class="chip" data-prompt="Late night cafe open 24 hours with cold coffee for friends hangout">
+          🌙 24/7 Late night
+        </span>
+        <span class="chip" data-prompt="Authentic Italian wood-fired pizza and pasta in Prahlad Nagar">
+          🍕 Italian Trattoria
+        </span>
+      </div>
+
+      <!-- Messages Stream -->
+      <div class="messages-container" id="messagesContainer">
+        <!-- Welcome Message -->
+        <div class="message assistant-message">
+          <div class="message-avatar">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+          <div class="message-content">
+            <p><strong>Welcome to Cafeasy!</strong> 👋 I'm your local dining and cafe guide for Ahmedabad, powered by <strong>Hybrid RAG & ChromaDB Vector Search</strong>.</p>
+            <p>Ask me for cafes tailored by <em>vibe</em> (first dates, quiet work, book reading), <em>locality</em> (SBR, Bodakdev, Vastrapur), <em>budget</em>, or <em>dishes</em>. All suggestions come with live map pins and verified Google Maps navigation links!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <form class="input-form" id="chatForm">
+        <div class="input-wrapper">
+          <input 
+            type="text" 
+            id="queryInput" 
+            placeholder="E.g., Romantic cafe with great desserts near Bodakdev under ₹800..." 
+            autocomplete="off"
+            required
+          />
+          <button type="submit" id="sendBtn" title="Send Request">
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- RIGHT PANEL: INTERACTIVE MAP -->
+    <section class="map-section">
+      <div id="map"></div>
+      
+      <!-- Floating Map Header / Stats -->
+      <div class="map-overlay-header">
+        <div class="map-title">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span>Ahmedabad Live Culinary Map</span>
+        </div>
+        <button class="map-btn" id="fitAllPinsBtn" title="Fit All Locations">
+          <i class="fa-solid fa-expand"></i> Fit All
+        </button>
+      </div>
+
+      <!-- Map Legend -->
+      <div class="map-legend">
+        <div class="legend-item"><span class="pin-sample active-sample"></span> Active / Recommended</div>
+        <div class="legend-item"><span class="pin-sample user-sample"></span> You Are Here</div>
+        <div class="legend-item"><span class="pin-sample regular-sample"></span> Catalog Venue</div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <!-- Marked.js for clean markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Main Application Script -->
+  <script src="/static/app.js"></script>
+</body>
+</html>

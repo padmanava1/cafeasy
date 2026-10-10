@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  cafeasy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cafeasy-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - CHROMA_PERSIST_DIR=/app/data/chroma_db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      # Mount data volume so vector store and scraped data persist across container updates
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
