@@ -15,7 +15,6 @@ const AHMEDABAD_CENTER = [23.0338, 72.5363]; // Central Ahmedabad (Vastrapur / B
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
   checkSystemHealth();
-  loadAllCatalogCafes();
   setupEventListeners();
   // Proactively try to locate user if permission already granted
   if (navigator.geolocation) {
@@ -253,29 +252,13 @@ async function checkSystemHealth() {
   }
 }
 
-/**
- * 5. Pre-load Catalog Cafes
- */
-async function loadAllCatalogCafes() {
-  try {
-    const res = await fetch("/api/cafes");
-    if (res.ok) {
-      const cafes = await res.json();
-      cafes.forEach(cafe => {
-        addCatalogMarker(cafe);
-      });
-    }
-  } catch (err) {
-    console.warn("Could not pre-populate catalog markers:", err);
-  }
-}
-
-function createCustomMarkerIcon(isActive = false) {
+function createCustomMarkerIcon(isActive = false, index = null) {
+  const numLabel = index !== null ? `<span class="marker-num">${index}</span>` : `<i class="fa-solid fa-mug-hot"></i>`;
   return L.divIcon({
     className: "custom-marker-wrapper",
     html: `
       <div class="custom-cafe-marker ${isActive ? 'active-pin' : ''}">
-        <i class="fa-solid fa-mug-hot"></i>
+        ${numLabel}
       </div>
     `,
     iconSize: [32, 32],
@@ -284,42 +267,25 @@ function createCustomMarkerIcon(isActive = false) {
   });
 }
 
-function addCatalogMarker(cafe) {
-  const marker = L.circleMarker([cafe.lat, cafe.lng], {
-    radius: 5,
-    color: "#f59e0b",
-    fillColor: "#f59e0b",
-    fillOpacity: 0.65,
-    weight: 1.5
-  });
-
-  const popupContent = `
-    <div class="popup-card">
-      <h4>${cafe.name}</h4>
-      <p><strong>${cafe.area}</strong> • ⭐ ${cafe.rating} • ₹${cafe.price_for_two} for two</p>
-      <p>${cafe.highlights}</p>
-      <a href="${cafe.google_maps_url}" target="_blank" rel="noopener noreferrer" class="popup-btn">
-        <i class="fa-solid fa-diamond-turn-right"></i> Directions on Maps
-      </a>
-    </div>
-  `;
-  marker.bindPopup(popupContent);
-  allMarkers[cafe.id] = marker;
-  marker.addTo(map);
-}
-
 function highlightRecommendedMarkers(geoPoints) {
   activeMarkerLayer.clearLayers();
+  allMarkers = {};
   const bounds = [];
+
+  // Hide initial map hint banner once recommendations arrive
+  const hintElem = document.getElementById("mapInitialHint");
+  if (hintElem) {
+    hintElem.style.display = "none";
+  }
 
   if (userLocation) {
     bounds.push([userLocation.lat, userLocation.lng]);
   }
 
-  geoPoints.forEach(point => {
+  geoPoints.forEach((point, idx) => {
     const marker = L.marker([point.lat, point.lng], {
-      icon: createCustomMarkerIcon(true),
-      zIndexOffset: 1000
+      icon: createCustomMarkerIcon(true, idx + 1),
+      zIndexOffset: 1000 + idx
     });
 
     const distInfo = point.distance_km ? `🚗 ${point.distance_km} km away • ` : '';
@@ -327,9 +293,9 @@ function highlightRecommendedMarkers(geoPoints) {
 
     const popupContent = `
       <div class="popup-card">
-        <h4>${point.name}</h4>
-        <p><strong>${point.area}</strong> • ${distInfo}⭐ ${point.rating} • ₹${point.price_for_two} for 2</p>
-        <p><em>${point.tags ? point.tags.slice(0, 3).join(', ') : ''}</em></p>
+        <h4>${idx + 1}. ${escapeHtml(point.name)}</h4>
+        <p><strong>${escapeHtml(point.area)}</strong> • ${distInfo}⭐ ${point.rating} • ₹${point.price_for_two} for 2</p>
+        <p><em>${point.tags ? point.tags.slice(0, 3).map(escapeHtml).join(', ') : ''}</em></p>
         <div style="display: flex; gap: 8px; margin-top: 8px;">
           <button onclick="drawDrivingRoute(${point.lat}, ${point.lng}, '${point.id}')" class="popup-btn popup-btn-route">
             <i class="fa-solid fa-route"></i> Route
@@ -349,7 +315,7 @@ function highlightRecommendedMarkers(geoPoints) {
 
   if (bounds.length > 0) {
     map.invalidateSize();
-    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
   }
 
   // Update mobile tab badge count
@@ -364,8 +330,8 @@ function highlightRecommendedMarkers(geoPoints) {
  * Mobile Tab Switcher Handler (For screens <= 850px)
  */
 function switchMobileTab(targetTab) {
-  const chatSection = document.querySelector(".chat-section");
-  const mapSection = document.querySelector(".map-section");
+  const chatSection = document.getElementById("chatSection");
+  const mapSection = document.getElementById("mapSection");
   const tabBtnChat = document.getElementById("tabBtnChat");
   const tabBtnMap = document.getElementById("tabBtnMap");
 
@@ -377,7 +343,7 @@ function switchMobileTab(targetTab) {
     if (map) {
       setTimeout(() => {
         map.invalidateSize();
-      }, 150);
+      }, 100);
     }
   } else {
     if (chatSection) chatSection.classList.remove("tab-hidden-mobile");
@@ -398,6 +364,20 @@ function setupEventListeners() {
   const locateBtn = document.getElementById("locateBtn");
   const tabBtnChat = document.getElementById("tabBtnChat");
   const tabBtnMap = document.getElementById("tabBtnMap");
+  const filterBar = document.getElementById("filterBar");
+  const suggestionChips = document.getElementById("suggestionChips");
+
+  // Mouse wheel horizontal scrolling for filter bar & chips
+  [filterBar, suggestionChips].forEach(el => {
+    if (el) {
+      el.addEventListener("wheel", (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+    }
+  });
 
   if (tabBtnChat) {
     tabBtnChat.addEventListener("click", () => switchMobileTab("chat"));
@@ -433,7 +413,9 @@ function setupEventListeners() {
     const allLatLngs = Object.values(allMarkers).map(m => m.getLatLng());
     if (userLocation) allLatLngs.push([userLocation.lat, userLocation.lng]);
     if (allLatLngs.length > 0) {
-      map.fitBounds(allLatLngs, { padding: [40, 40] });
+      map.fitBounds(allLatLngs, { padding: [50, 50], maxZoom: 15 });
+    } else {
+      map.flyTo(AHMEDABAD_CENTER, 13, { animate: true, duration: 1.0 });
     }
   });
 }

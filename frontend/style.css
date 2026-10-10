@@ -42,49 +42,66 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* App Split Screen Layout */
+/* App Container: Column flex with top header, optional mobile tabs, and main content */
 .app-container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
   position: relative;
 }
 
-/* Left Section: Chat & Controls (Capped comfortable 40% width) */
+/* Main Content: Split screen on desktop, full-width toggle on mobile */
+.main-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Left Section: Chat & Controls (Comfortable width on desktop) */
 .chat-section {
-  flex: 0 0 40%;
-  width: 40%;
-  min-width: 380px;
-  max-width: 540px;
+  flex: 0 0 440px;
+  width: 440px;
+  min-width: 360px;
+  max-width: 520px;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
   position: relative;
   height: 100%;
+  min-height: 0;
   overflow: hidden;
   z-index: 10;
 }
 
-/* Right Section: Interactive Map View (Dominant 60% screen area, never sidelined) */
+/* Right Section: Interactive Map View (Dominant 60%+ screen area) */
 .map-section {
   flex: 1 1 auto;
-  min-width: 0; /* Essential: prevents flex child from overflowing */
+  min-width: 0;
   height: 100%;
+  min-height: 0;
   position: relative;
   overflow: hidden;
   background-color: #0b111e;
+  z-index: 5;
 }
 
-/* Header */
+/* Top Global Header */
 .app-header {
-  padding: 14px 20px;
+  flex-shrink: 0;
+  padding: 12px 20px;
   background-color: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  z-index: 30;
 }
 
 .brand {
@@ -159,24 +176,48 @@ body {
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
-/* Filters & Geolocation Bar */
+/* Filter Bar Container & Scrollable Row */
+.filter-bar-container {
+  width: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
 .filter-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+  padding: 10px 16px;
   overflow-x: auto;
-  scrollbar-width: none;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 rgba(15, 23, 42, 0.4);
 }
 
 .filter-bar::-webkit-scrollbar {
-  display: none;
+  height: 5px;
+}
+
+.filter-bar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 4px;
+}
+
+.filter-bar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.filter-bar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-amber);
 }
 
 .btn-locate {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
@@ -189,6 +230,7 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
   font-family: inherit;
 }
 
@@ -203,15 +245,17 @@ body {
 }
 
 .filter-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   background-color: var(--bg-card);
-  padding: 5px 10px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   font-size: 0.78rem;
   color: var(--text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .filter-item select {
@@ -229,27 +273,52 @@ body {
   color: #f8fafc;
 }
 
-/* Suggestion Chips */
+/* Suggestion Chips Container & Scrollable Row */
+.suggestion-chips-container {
+  width: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: rgba(17, 24, 39, 0.6);
+  border-bottom: 1px solid var(--border-color);
+}
+
 .suggestion-chips {
   display: flex;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 10px 16px;
   overflow-x: auto;
-  scrollbar-width: none;
-  border-bottom: 1px solid var(--border-color);
-  background-color: rgba(17, 24, 39, 0.6);
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 rgba(15, 23, 42, 0.4);
 }
 
 .suggestion-chips::-webkit-scrollbar {
-  display: none;
+  height: 5px;
+}
+
+.suggestion-chips::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 4px;
+}
+
+.suggestion-chips::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.suggestion-chips::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-amber);
 }
 
 .chip {
+  flex-shrink: 0;
   white-space: nowrap;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   font-size: 0.76rem;
   cursor: pointer;
@@ -607,15 +676,6 @@ body {
   transform: scale(1.05);
 }
 
-/* Right Section: Interactive Leaflet Map (52%) */
-.map-section {
-  flex: 0 0 52%;
-  position: relative;
-  height: 100%;
-  overflow: hidden;
-  background-color: #1e293b;
-}
-
 #map {
   width: 100% !important;
   height: 100% !important;
@@ -625,7 +685,7 @@ body {
   right: 0;
   bottom: 0;
   z-index: 1;
-  background-color: #1e293b;
+  background-color: #0b111e;
 }
 
 /* Map Overlays */
@@ -676,6 +736,37 @@ body {
   border-color: var(--accent-amber);
 }
 
+/* Map Initial Empty State Hint */
+.map-initial-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 800;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.hint-badge {
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #f8fafc;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+.hint-badge i {
+  color: var(--accent-amber);
+  font-size: 0.9rem;
+}
+
 .map-legend {
   position: absolute;
   bottom: 24px;
@@ -707,10 +798,6 @@ body {
 .active-sample {
   background-color: #ef4444;
   box-shadow: 0 0 8px #ef4444;
-}
-
-.regular-sample {
-  background-color: #f59e0b;
 }
 
 .user-sample {
@@ -765,6 +852,14 @@ body {
 .custom-cafe-marker.active-pin {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   animation: markerPulse 1.5s infinite;
+}
+
+.marker-num {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes markerPulse {
@@ -870,12 +965,17 @@ body {
 /* ==========================================================================
    MOBILE TAB NAVIGATION BAR
    ========================================================================== */
+/* ==========================================================================
+   MOBILE TAB NAVIGATION BAR
+   ========================================================================== */
 .mobile-tab-nav {
   display: none; /* Desktop default: dual-pane split screen */
   background: #0f172a;
   border-bottom: 1px solid var(--border-color);
   padding: 6px 12px;
   gap: 8px;
+  flex-shrink: 0;
+  z-index: 25;
 }
 
 .tab-btn {
@@ -923,51 +1023,59 @@ body {
 @media (max-width: 850px) {
   body {
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
   }
 
   .app-container {
-    flex-direction: column;
     height: 100vh;
+    height: 100dvh;
     width: 100vw;
-    position: relative;
   }
 
   /* Show Mobile Top Navigation Bar */
   .mobile-tab-nav {
-    display: flex;
-    z-index: 50;
-    flex-shrink: 0;
+    display: flex !important;
+  }
+
+  .main-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    position: relative;
   }
 
   .chat-section {
+    display: flex;
     flex: 1 1 100%;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     border-right: none;
-    height: calc(100vh - 54px);
+    height: 100%;
+    min-height: 0;
+  }
+
+  .chat-section.tab-hidden-mobile {
+    display: none !important;
   }
 
   .map-section {
     display: none;
     flex: 1 1 100%;
     width: 100%;
-    height: calc(100vh - 54px);
-    position: absolute;
-    top: 54px;
+    height: 100%;
+    min-height: 0;
+    position: relative;
+    top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 40;
-  }
-
-  /* Mobile Active/Hidden Tab Classes */
-  .chat-section.tab-hidden-mobile {
-    display: none !important;
+    z-index: 10;
   }
 
   .map-section.tab-active-mobile {
     display: block !important;
-    height: calc(100vh - 54px);
+    width: 100%;
+    height: 100%;
   }
 
   /* Compact Responsive Header */
@@ -985,15 +1093,13 @@ body {
 
   .system-status {
     padding: 4px 8px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
   }
 
   /* Compact Filter Bar with Smooth Touch Scrolling */
   .filter-bar {
     padding: 8px 12px;
     gap: 6px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   .btn-locate {
@@ -1002,9 +1108,8 @@ body {
   }
 
   .filter-item {
-    padding: 4px 8px;
+    padding: 5px 8px;
     font-size: 0.74rem;
-    flex-shrink: 0;
   }
 
   .filter-item select {
@@ -1015,24 +1120,17 @@ body {
   .suggestion-chips {
     padding: 8px 12px;
     gap: 6px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   .chip {
     padding: 5px 10px;
     font-size: 0.72rem;
-    flex-shrink: 0;
   }
 
   /* Messages Stream */
   .messages-container {
     padding: 12px 14px;
     gap: 14px;
-  }
-
-  .message {
-    gap: 10px;
   }
 
   .message-content {
@@ -1066,19 +1164,36 @@ body {
     top: 10px;
     left: 10px;
     right: 10px;
-    padding: 8px 12px;
   }
 
   .map-title {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
+    padding: 6px 12px;
+  }
+
+  .map-btn {
+    padding: 6px 12px;
+    font-size: 0.74rem;
   }
 
   .map-legend {
-    bottom: 15px;
+    bottom: 12px;
     left: 10px;
     font-size: 0.68rem;
     padding: 6px 10px;
-    max-width: 80%;
+  }
+
+  .map-initial-hint {
+    bottom: 45px;
+    width: 90%;
+  }
+
+  .map-initial-hint .hint-badge {
+    white-space: normal;
+    text-align: center;
+    font-size: 0.72rem;
+    padding: 7px 12px;
+    gap: 6px;
   }
 
   /* Floating Input Form */
