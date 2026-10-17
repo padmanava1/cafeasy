@@ -6,7 +6,10 @@
 [![Leaflet](https://img.shields.io/badge/GIS-Leaflet.js-green.svg)](https://leafletjs.com/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-yellow.svg)](LICENSE)
 
-**Cafeasy** is an autonomous, location-aware conversational recommendation system built for Ahmedabad's culinary scene. It combines **Retrieval-Augmented Generation (RAG)**, **ChromaDB Vector DB**, **FastAPI**, and an **interactive Leaflet.js map** to deliver grounded dining recommendations with verified Google Maps directions and sub-250ms latency.
+**Cafeasy** is an autonomous, location-aware conversational recommendation system built for Ahmedabad's culinary scene. It combines **Retrieval-Augmented Generation (RAG)**, **ChromaDB Vector DB**, **FastAPI**, and an **interactive Leaflet.js map** to deliver grounded dining recommendations with verified Google Maps directions and sub-second latency.
+
+📖 **[Read the Full System Architecture & Technical Interview Guide →](docs/ARCHITECTURE_AND_INTERVIEW_GUIDE.md)**  
+*(In-depth breakdown of scraping pipelines, ChromaDB vector indexing, two-stage re-ranking mathematics, prompt grounding, and cloud deployment for engineers).*
 
 ---
 
